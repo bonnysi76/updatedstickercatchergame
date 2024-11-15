@@ -1,6 +1,4 @@
-Sure! Here's a sample README file for your Emoji Catcher Game:
 
-```markdown
 # Emoji Catcher Game
 
 Welcome to the Emoji Catcher Game! This fun and interactive game challenges players to catch emojis by clicking on them.
