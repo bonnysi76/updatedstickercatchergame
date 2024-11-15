@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emoji Catcher Game - Bonny Sithole</title>
+    <style>
+      body {
+        background: #1a1a1a;
+        color: #fff;
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        transition: background 0.3s, color 0.3s;
+      }
+
+      .dark-mode {
+        background: #f5f5f5;
+        color: #333;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: #333;
+      }
+
+      .toggle-button {
+        background: none;
+        border: 2px solid #fff;
+        color: #fff;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background 0.3s, color 0.3s;
+      }
+
+      .dark-mode .toggle-button {
+        border-color: #333;
+        color: #333;
+      }
+
+      .scores-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        background: #444;
+      }
+
+      .total-score, .time {
+        margin: 20px;
+        text-align: center;
+        background: #ccc;
+        padding: 20px;
+        color: #000;
+        border-radius: 10px;
+      }
+
+      .grid-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .grid {
+        width: 90%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        background-color: #2a2a2a;
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .square {
+        height: 100px;
+        width: 100px;
+        margin: 10px;
+        background: #555;
+        transition: background 0.3s, box-shadow 0.3s;
+        border-radius: 10px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .emoji {
+        background-position: center;
+        background-size: cover;
+        animation: bounce 0.5s infinite alternate;
+        box-shadow: 0 0 15px 5px rgba(255, 255, 0, 0.7);
+      }
+
+      @keyframes bounce {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(-10px);
+        }
+      }
+
+      .sticker-selection {
+        text-align: center;
+        margin: 20px;
+      }
+
+      .sticker-option {
+        cursor: pointer;
+        margin: 5px;
+        width: 50px;
+        height: 50px;
+        display: inline-block;
+        background-size: cover;
+        border-radius: 5px;
+        border: 2px solid transparent;
+        transition: border 0.3s;
+      }
+
+      .sticker-option:hover {
+        border: 2px solid #fff;
+      }
+
+      .instructions {
+        text-align: center;
+        margin: 20px;
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Emoji Catcher Game - Bonny Sithole</h1>
+      <button class="toggle-button" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    </div>
+
+    <div class="instructions">
+      <p>Catch the emojis by clicking on them! Select a sticker to start. Try to score as high as possible before time runs out!</p>
+    </div>
+
+    <div class="sticker-selection">
+      <h2>Select a Sticker:</h2>
+      <div class="sticker-option" style="background-image: url('https://i.imgur.com/1.png');" onclick="selectSticker(['https://i.imgur.com/1.png', 'https://i.imgur.com/2.png', 'https://i.imgur.com/3.png'])"></div>
+      <div class="sticker-option" style="background-image: url('https://i.imgur.com/2.png');" onclick="selectSticker(['https://i.imgur.com/2.png', 'https://i.imgur.com/3.png', 'https://i.imgur.com/1.png'])"></div>
+      <div class="sticker-option" style="background-image: url('https://i.imgur.com/3.png');" onclick="selectSticker(['https://i.imgur.com/3.png', 'https://i.imgur.com/1.png', 'https://i.imgur.com/2.png'])"></div>
+    </div>
+
+    <div class="scores-container">
+      <div class="total-score">
+        <h2>Your Score:</h2>
+        <h2 id="score">0</h2>
+      </div>
+      <div class="time">
+        <h2>Time left:</h2>
+        <h2 id="time-left">60</h2>
+      </div>
+    </div>
+    <div class="grid-container">
+      <div class="grid">
+        <div class="square" id="1"></div>
+        <div class="square" id="2"></div>
+        <div class="square" id="3"></div>
+        <div class="square" id="4"></div>
+        <div class="square" id="5"></div>
+        <div class="square" id="6"></div>
+        <div class="square" id="7"></div>
+        <div class="square" id="8"></div>
+        <div class="square" id="9"></div>
+        <div class="square" id="10"></div>
+      </div>
+    </div>
+    <script>
+      const squares = document.querySelectorAll(".square");
+      const timeLeft = document.querySelector("#time-left");
+      const score = document.querySelector("#score");
+      let result = 0;
+      let hitPosition;
+      let currentTime = 60;
+      let timerId = null;
+      let selectedStickers = [];
+      let stickerIndex = 0;
+
+      function randomSquare() {
+        squares.forEach((square) => {
+          square.classList.remove("emoji");
+          square.style.backgroundImage = '';
+        });
+
+        const randomSquare = squares[Math.floor(Math.random() * squares.length)];
+        randomSquare.classList.add("emoji");
+        randomSquare.style.backgroundImage = `url(${selectedStickers[stickerIndex]})`;
+        stickerIndex = (stickerIndex + 1) % selectedStickers.length;
+        hitPosition = randomSquare.id;
+      }
+
+      squares.forEach((square) => {
+        square.addEventListener("mousedown", () => {
+          if (square.id == hitPosition) {
+            result++;
+            score.textContent = result;
+            hitPosition = null;
+          }
+        });
+      });
+
+      function moveEmoji() {
+        if (selectedStickers.length) {
+          timerId = setInterval(randomSquare, 500);
+        }
+      }
+
+      function countDown() {
+        currentTime--;
+        timeLeft.textContent = currentTime;
+
+        if (currentTime == 0) {
+          clearInterval(countDownTimerId);
+          clearInterval(timerId);
+          alert(`Game Over! Your final Score Is ${result}`);
+        }
+      }
+
+      function selectSticker(stickers) {
+        selectedStickers = stickers;
+        stickerIndex = 0;
+        if (!timerId) {
+          moveEmoji();
+          countDown();
+        }
+      }
+
+      function toggleDarkMode() {
+        document.body.classList.toggle("dark-mode");
+      }
+
+      let countDownTimerId = setInterval(countDown, 1000);
+    </script>
+  </body>
+</html>
